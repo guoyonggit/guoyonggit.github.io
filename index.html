@@ -189,7 +189,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/24/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/30/spring%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -203,7 +203,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/11/24/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+            <a href="/2020/11/30/spring%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-title-link" itemprop="url">spring源码分析（一）</a>
         </h2>
 
         <div class="post-meta">
@@ -214,7 +214,16 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-11-24 14:10:54 / 修改时间：14:06:18" itemprop="dateCreated datePublished" datetime="2020-11-24T14:10:54+08:00">2020-11-24</time>
+              <time title="创建时间：2020-11-30 14:06:00 / 修改时间：17:46:28" itemprop="dateCreated datePublished" datetime="2020-11-30T14:06:00+08:00">2020-11-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+                </span>
             </span>
 
           
@@ -228,15 +237,47 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+          <h5 id="前言概述"><a href="#前言概述" class="headerlink" title="前言概述"></a>前言概述</h5><p>目前web开发主流采用的是java作为后端开发的语言，在javaweb开发中，spring框架提供了较为完善的封装，先阶段spring在spring mvc的基础上进行了一系列的优化，使得搭建框架时 <strong>约定大于配置，简化spring的配置流程</strong>, 当然也会有其他的开源框架，但在spring面前 <strong>都是弟弟。</strong><br></p>
+<p>spring框架是使用趋势图：<br><img src="https://tvax4.sinaimg.cn/large/006rzR0hly1gl76tjmkqqj30d407ymzj.jpg" alt="image"></p>
+<p>最近有时间，正好研究下spring的源码及其加载配置的原理，采用spring mvc框架进行分析</p>
+<hr>
+<h5 id="spring剖析"><a href="#spring剖析" class="headerlink" title="spring剖析"></a>spring剖析</h5><p>在使用spring mvc进行web开发时，是需要在web.xml文件中进行一系列配置，<strong>ContexLoaderListener，contextConfigLocation，DispatchServlet</strong>，其中<strong>contextConfigLocation</strong>是用来指定spring配置文件路径的，默认是加载WEB-INF下的applicationContext.xml，如果次路径没有配置文件或者没有在web.xml中配置，则初始化项目失败。<strong>DispatchServlet</strong>是用来接受所有前端控制器，根据拦截的url进行不同的请求分发。</p>
+<hr>
+<h5 id="servlet规范"><a href="#servlet规范" class="headerlink" title="servlet规范"></a>servlet规范</h5><ul>
+<li><p>在servlet规范中，servlet容器或叫web容器，如tomcat，中运行的每个应用都由一个<strong>ServletContext</strong>表示，在web容器中可以有多个ServletContext，即可以有多个web应用在web容器中运行。</p>
+</li>
+<li><p>在web容器启动时，会初始化web应用，即创建 <strong>ServletContext</strong>对象，加载解析web.xml文件，获取Filters，Listener，Servlet等组件的配置并创建对象实例，作为 <strong>ServletContext</strong>的属性，保存到 <strong>ServletContext</strong>中。之后web容器接受到请求后，根据请求信息匹配到Servlet，在交给Servlet请求之前，会先经过Filters，对请求进行过滤。</p>
+</li>
+<li><p>经过分析可以了解到，整个spring项目就是提供了一个<strong>ServletContext</strong>,在<strong>ServletContext</strong>对象的创建和初始化时，需要触发spring相关组件的创建和初始化，如@Controller，@RequestMapping注解的类和方法。</p>
+</li>
+</ul>
+<hr>
+<h5 id="springmvc-web-xml配置文件"><a href="#springmvc-web-xml配置文件" class="headerlink" title="springmvc web.xml配置文件"></a>springmvc web.xml配置文件</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- spring配置 --&gt;</span><br><span class="line">    &lt;!-- Spring加载的xml文件,不配置默认为applicationContext.xml --&gt;</span><br><span class="line">    &lt;context-param&gt;</span><br><span class="line">        &lt;param-name&gt;contextConfigLocation&lt;&#x2F;param-name&gt;</span><br><span class="line">        &lt;param-value&gt;&#x2F;WEB-INF&#x2F;springConfig.xml&lt;&#x2F;param-value&gt;</span><br><span class="line">    &lt;&#x2F;context-param&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!--spring mvc配置--&gt;</span><br><span class="line">    &lt;!-- 配置Sping MVC的DispatcherServlet,也可以配置为继承了DispatcherServlet的自定义类,这里配置spring mvc的配置(扫描controller) --&gt;</span><br><span class="line">    &lt;servlet&gt;</span><br><span class="line">        &lt;servlet-name&gt;springmvcservlet&lt;&#x2F;servlet-name&gt;</span><br><span class="line">        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;&#x2F;servlet-class&gt;</span><br><span class="line">        &lt;!-- spring MVC的配置文件 --&gt;</span><br><span class="line">        &lt;init-param&gt;</span><br><span class="line">             &lt;param-name&gt;contextConfigLocation&lt;&#x2F;param-name&gt;</span><br><span class="line">             &lt;param-value&gt;&#x2F;WEB-INF&#x2F;springmvc.xml&lt;&#x2F;param-value&gt;</span><br><span class="line">        &lt;&#x2F;init-param&gt;</span><br><span class="line">        &lt;!--其他参数--&gt;</span><br><span class="line">        &lt;init-param&gt;</span><br><span class="line">             &lt;param-name&gt;appName&lt;&#x2F;param-name&gt;</span><br><span class="line">             &lt;param-value&gt;authplatform&lt;&#x2F;param-value&gt;</span><br><span class="line">        &lt;&#x2F;init-param&gt;</span><br><span class="line">        &lt;!-- 下面值小一点比较合适，会优先加载 --&gt;</span><br><span class="line">        &lt;load-on-startup&gt;1&lt;&#x2F;load-on-startup&gt;</span><br><span class="line">    &lt;&#x2F;servlet&gt;</span><br><span class="line">    &lt;servlet-mapping&gt;</span><br><span class="line">        &lt;servlet-name&gt;springmvcservlet&lt;&#x2F;servlet-name&gt;</span><br><span class="line">        &lt;url-pattern&gt;&#x2F;&lt;&#x2F;url-pattern&gt;</span><br><span class="line">    &lt;&#x2F;servlet-mapping&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 配置请求过滤器，编码格式设为UTF-8，避免中文乱码 --&gt;</span><br><span class="line">    &lt;filter&gt;</span><br><span class="line">        &lt;filter-name&gt;charsetfilter&lt;&#x2F;filter-name&gt;</span><br><span class="line">        &lt;filter-class&gt;</span><br><span class="line">            org.springframework.web.filter.CharacterEncodingFilter</span><br><span class="line">        &lt;&#x2F;filter-class&gt;</span><br><span class="line">        &lt;init-param&gt;</span><br><span class="line">            &lt;param-name&gt;encoding&lt;&#x2F;param-name&gt;</span><br><span class="line">            &lt;param-value&gt;UTF-8&lt;&#x2F;param-value&gt;</span><br><span class="line">        &lt;&#x2F;init-param&gt;</span><br><span class="line">        &lt;init-param&gt;</span><br><span class="line">            &lt;param-name&gt;forceEncoding&lt;&#x2F;param-name&gt;</span><br><span class="line">            &lt;param-value&gt;true&lt;&#x2F;param-value&gt;</span><br><span class="line">        &lt;&#x2F;init-param&gt;</span><br><span class="line">    &lt;&#x2F;filter&gt;</span><br><span class="line">    &lt;filter-mapping&gt;</span><br><span class="line">        &lt;filter-name&gt;charsetfilter&lt;&#x2F;filter-name&gt;</span><br><span class="line">        &lt;url-pattern&gt;&#x2F;*&lt;&#x2F;url-pattern&gt;</span><br><span class="line">    &lt;&#x2F;filter-mapping&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 该类作为spring的listener使用，它会在创建时自动查找web.xml配置的applicationContext.xml文件 --&gt;</span><br><span class="line">    &lt;listener&gt;</span><br><span class="line">        &lt;listener-class&gt;</span><br><span class="line">            org.springframework.web.context.ContextLoaderListener</span><br><span class="line">        &lt;&#x2F;listener-class&gt;</span><br><span class="line">    &lt;&#x2F;listener&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 此监听器主要用于解决java.beans.Introspector导致的内存泄漏的问题 --&gt;</span><br><span class="line">    &lt;listener&gt;</span><br><span class="line">        &lt;listener-class&gt;org.springframework.web.util.IntrospectorCleanupListener&lt;&#x2F;listener-class&gt;</span><br><span class="line">    &lt;&#x2F;listener&gt;</span><br></pre></td></tr></table></figure>
+<hr>
+<h5 id="Listener监听器机制：ContextLoaderListener"><a href="#Listener监听器机制：ContextLoaderListener" class="headerlink" title="Listener监听器机制：ContextLoaderListener"></a>Listener监听器机制：ContextLoaderListener</h5><ul>
+<li><p>servlet规范中，使用Listener监听器机制来进行web容器相关组件的生命周期以及Event事件监听器来实现组件间的交互</p>
+</li>
+<li><p>其中一个重要的生命监听器时ServletContextListener。web容器在创建和初始化ServletContex的时候，会产生ServletContextEvent事件，其中ServletContextEvent包含了该ServletContext的引用。然后交给web.xml中配置的，注册到ServletContext的监听器ServletContextListener。ServletContextListener在其contextInitialized方法中定义处理逻辑</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public interface ServletContextListener extends EventListener &#123;</span><br><span class="line">    default void contextInitialized(ServletContextEvent sce) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    default void contextDestroyed(ServletContextEvent sce) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ServletContextListener接口中contextInitialized方法的具体实现是在 <strong>ContextLoader</strong>中完成的， <strong>ServletContextListener—-&gt;ContextLoaderListener(web.xml配置)—-&gt;ContextLoader(具体实现)</strong><br>当初始化创建时候会通知所有的ServletContextListeners，此刻还为对Filters和Servlets进行创建，此刻进行的是底层请求组件的加载，如数据库连接池，数据库事务管理等。</p>
+</li>
+<li><p>ContextLoaderListener：spring-web包的ContextLoaderListener是ServletContextListener的实现类。ContextLoaderListener主要用来获取spring项目的整个配置信息，并创建WebApplicationContext来保存bean的信息，以及创建这边bean的对象实例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;listener&gt;</span><br><span class="line">    &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;&#x2F;listener-class&gt;</span><br><span class="line">&lt;&#x2F;listener&gt;</span><br><span class="line">&lt;!-- 修改配置文件路径 --&gt;</span><br><span class="line">&lt;context-param&gt;</span><br><span class="line">    &lt;param-name&gt;contextConfigLocation&lt;&#x2F;param-name&gt;</span><br><span class="line">    &lt;param-value&gt;classpath:spring&#x2F;applicationContext.xml&lt;&#x2F;param-value&gt;</span><br><span class="line">&lt;&#x2F;context-param&gt;</span><br></pre></td></tr></table></figure>
+<p>默认去WEB-INF下加载applicationContext.xml配置，如果applicationContext.xml放在其他位置，或者使用其他不同的名称，或者使用多个xml文件，则与指定contextConfigLocation。</p>
+</li>
+</ul>
+<hr>
+<h5 id="DispatcherServlet"><a href="#DispatcherServlet" class="headerlink" title="DispatcherServlet"></a>DispatcherServlet</h5><ul>
+<li>在web容器中的加载顺序：context-param—&gt;listener—&gt;filter—&gt;servlet。其中，ContextLoaderListener<br>属于listener阶段。<br><br>Servlet生命周期：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public interface Servlet &#123;</span><br><span class="line">    void init(ServletConfig var1) throws ServletException;</span><br><span class="line"></span><br><span class="line">    ServletConfig getServletConfig();</span><br><span class="line"></span><br><span class="line">    void service(ServletRequest var1, ServletResponse var2) throws ServletException, IOException;</span><br><span class="line"></span><br><span class="line">    String getServletInfo();</span><br><span class="line"></span><br><span class="line">    void destroy();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+通常需要在项目的web.xml中配置一个DispatcherServlet，并配置拦截包含“/”路径的请求，即拦截所有请求。这样在web容器启动应用时，在servlet阶段会创建这个servlet。web容器在创建这个servlet的时候，会调用其init方法，故可以在DispatcherServlet的init方法中定义初始化逻辑，核心实现了创建DispatcherServlet自身的一个WebApplicationContext，<strong>在spring中每个servlet可以包含一个独立的WebApplicationContext来维护自身的组件，而上面通过ContextLoaderListener创建的WebApplicationContext为共有的，通常也是最顶层，即root WebApplicationContext，servlet的WebApplicationContext可以通过setParent方法设值到自身的一个属性。</strong>DispatcherServlet默认是加载WEB-INF下面的“servletName”-servlet.xml，来获取配置信息的，也可以与ContextLoaderListener一样通过contextLoaderConfig来指定位置。</li>
+</ul>
+<hr>
+<h6 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h6><ul>
+<li>spring相关配置解析和组件创建其实是在web容器中，启动一个web应用时，即在一个ServletContext创建时，首先解析web.xml的listener和servlet列表，然后保存在自身的一个属性中，通过分发生命周期事件ServletContextEvent给这些listeners，从而在listener中感知应用启动，然后定义自身处理逻辑，ContextLoaderListener就是解析spring配置文件并且配置相关bean；其次创建servlet，调用servlet的init方法，这样servlet可以自定义初始化逻辑，DispatcherServlet就是其中一个servelt。</li>
+<li>ContextLoaderListener和DispatchServlet的创建时，都会进行WebApplicationContext的创建，这里就是IOC的创建了，即会交给spring-context，spring-beans包相关的类进行处理。</li>
+</ul>
+<hr>
+<h5 id="导图"><a href="#导图" class="headerlink" title="导图"></a>导图</h5><p><img src="https://tva3.sinaimg.cn/large/006rzR0hly1gl7cc8xclvj31lz0bwtb2.jpg" alt="未命名文件"></p>
 
       
     </div>
@@ -328,6 +369,18 @@
           <span class="site-state-item-count">1</span>
           <span class="site-state-item-name">日志</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
 </div>
