@@ -3,11 +3,11 @@
   <entry>
     <title>spring源码分析（一）</title>
     <url>/2020/11/30/spring%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<h5 id="前言概述"><a href="#前言概述" class="headerlink" title="前言概述"></a>前言概述</h5><p>目前web开发主流采用的是java作为后端开发的语言，在javaweb开发中，spring框架提供了较为完善的封装，先阶段spring在spring mvc的基础上进行了一系列的优化，使得搭建框架时 <strong>约定大于配置，简化spring的配置流程</strong>, 当然也会有其他的开源框架，但在spring面前 <strong>都是弟弟。</strong><br></p>
+    <content><![CDATA[<h5 id="前言概述"><a href="#前言概述" class="headerlink" title="前言概述"></a>前言概述</h5><p>目前web开发主流采用的是java作为后端开发的语言，在javaweb开发中，spring框架提供了较为完善的封装，先阶段spring boot在spring mvc的基础上进行了一系列的优化，使得搭建框架时 <strong>约定大于配置，简化spring的配置流程</strong>, 当然也会有其他的开源框架，但在spring面前 <strong>都是弟弟。</strong><br></p>
 <p>spring框架是使用趋势图：<br><img src="https://tvax4.sinaimg.cn/large/006rzR0hly1gl76tjmkqqj30d407ymzj.jpg" alt="image"></p>
 <p>最近有时间，正好研究下spring的源码及其加载配置的原理，采用spring mvc框架进行分析</p>
 <hr>
-<h5 id="spring剖析"><a href="#spring剖析" class="headerlink" title="spring剖析"></a>spring剖析</h5><p>在使用spring mvc进行web开发时，是需要在web.xml文件中进行一系列配置，<strong>ContexLoaderListener，contextConfigLocation，DispatchServlet</strong>，其中<strong>contextConfigLocation</strong>是用来指定spring配置文件路径的，默认是加载WEB-INF下的applicationContext.xml，如果次路径没有配置文件或者没有在web.xml中配置，则初始化项目失败。<strong>DispatchServlet</strong>是用来接受所有前端控制器，根据拦截的url进行不同的请求分发。</p>
+<h5 id="spring剖析"><a href="#spring剖析" class="headerlink" title="spring剖析"></a>spring剖析</h5><p>在使用spring mvc进行web开发时，是需要在web.xml文件中进行一系列配置，<strong>ContexLoaderListener，contextConfigLocation，DispatchServlet</strong>，其中<strong>contextConfigLocation</strong>是用来指定spring配置文件路径的，默认是加载WEB-INF下的applicationContext.xml，如果次路径没有配置文件或者没有在web.xml中配置，则初始化项目失败。<strong>DispatchServlet</strong>是用来接受所有前端控制器，配置扫描spring mvc的配置文件，根据拦截的url进行不同的请求分发。</p>
 <hr>
 <h5 id="servlet规范"><a href="#servlet规范" class="headerlink" title="servlet规范"></a>servlet规范</h5><ul>
 <li><p>在servlet规范中，servlet容器或叫web容器，如tomcat，中运行的每个应用都由一个<strong>ServletContext</strong>表示，在web容器中可以有多个ServletContext，即可以有多个web应用在web容器中运行。</p>
@@ -44,6 +44,72 @@
 </ul>
 <hr>
 <h5 id="导图"><a href="#导图" class="headerlink" title="导图"></a>导图</h5><p><img src="https://tva3.sinaimg.cn/large/006rzR0hly1gl7cc8xclvj31lz0bwtb2.jpg" alt="未命名文件"></p>
+]]></content>
+      <categories>
+        <category>java</category>
+      </categories>
+      <tags>
+        <tag>spring</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>spring源码分析（二）</title>
+    <url>/2020/12/01/spring%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<h5 id="servlet容器（web容器）引导Spring容器加载：ContextLoaderListener"><a href="#servlet容器（web容器）引导Spring容器加载：ContextLoaderListener" class="headerlink" title="servlet容器（web容器）引导Spring容器加载：ContextLoaderListener"></a>servlet容器（web容器）引导Spring容器加载：ContextLoaderListener</h5><ul>
+<li><p>通过分析在web容器(如tomcat)中，启动web应用时，会通过配置监听的方式，通知<strong>ServletContextListener</strong><br>web容器启动web应用是通过<strong>ServletContextListener</strong>接口进行初始化逻辑的，具体的实现逻辑是通过实现类<strong>ContextLoaderListener</strong>，<strong>ContextLoaderListener</strong>主要负责加载spring主容器相关的bean，即默认WEB-INF/applicationContext.xml文件的配置信息。</p>
+</li>
+<li><p>ContextLoaderListener通过实现ServletContextListener接口，将spring容器融入到web容器中，可以从两个角度理解</p>
+<ol>
+<li><h6 id="web项目自身"><a href="#web项目自身" class="headerlink" title="web项目自身"></a>web项目自身</h6><pre><code>接受web容器启动web应用通知，开始自身配置的解析加载，创建bean实例，通过一个WebApplicationContext来维护spring项目主容器相关的bean，以及其他组件。
+</code></pre></li>
+<li><h6 id="web容器"><a href="#web容器" class="headerlink" title="web容器"></a>web容器</h6><pre><code>web容器通过ServletContext来维护每一个web应用，ContextLoaderListener将spring容器，即WebApplicationContext，作为ServletContext的一个attribute，key为WebApplicationContext.class.getName()+&quot;ROOT&quot;,保存在ServletContext中，从而为web容器和spring项目可以通过ServletContext进行交互。
+</code></pre></li>
+</ol>
+</li>
+<li><p>ContextLoaderListener只是作为中间层建立spring容器和web容器的关联关系，实际的逻辑是在<strong>ContextLoader</strong>中进行的。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ContextLoaderListener extends ContextLoader implements ServletContextListener &#123;</span><br><span class="line">    public ContextLoaderListener() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    public ContextLoaderListener(WebApplicationContext context) &#123;</span><br><span class="line">        super(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void contextInitialized(ServletContextEvent event) &#123;</span><br><span class="line">        this.initWebApplicationContext(event.getServletContext());</span><br><span class="line">    &#125;</span><br><span class="line">    public void contextDestroyed(ServletContextEvent event) &#123;</span><br><span class="line">        this.closeWebApplicationContext(event.getServletContext());</span><br><span class="line">        ContextCleanupListener.cleanupAttributes(event.getServletContext());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<hr>
+<h5 id="WebApplicationContext初始化的方式"><a href="#WebApplicationContext初始化的方式" class="headerlink" title="WebApplicationContext初始化的方式"></a>WebApplicationContext初始化的方式</h5><pre><code>ApplicationContext是Spring的核心，Context为上下文环境，用“容器”来表述它更容易理解一些，ApplicationContext则是“应用的容器”了；在Web应用中，会用到WebApplicationContext，WebApplicationContext继承自ApplicationContext；WebApplicationContext的初始化方式和BeanFactory.ApplicationContext有所区别,因为WebApplicationContext需要ServletContext实例,也就是说它必须拥有Web容器的前提下才能完成启动的工作。可以在web.xml中配置自启动的Servlet或定义Web容器监听器(ServletContextListener),借助着两者中的任何一个,就可以启动Spring Web应用上下文的工作。
+</code></pre><ul>
+<li>Spring分别提供了用于启动WebApplicationContext的Servlet和Web容器监听器:<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">org.springframework.web.context.ContextLoaderServlet;</span><br><span class="line">org.springframework.web.context.ContextLoaderListener.</span><br></pre></td></tr></table></figure></li>
+<li>都是在web应用启动的时候来初始化WebApplicationContext，Listerner要比Servlet更好一些，因为Listerner监听应用的启动和结束，而Servlet得启动要稍微延迟一些，如果在这时要做一些业务的操作，启动的前后顺序是有影响的。这两个初始化WebApplicationContext的Listerner和Servlet也并非具体的实现，具体实现是在<strong>ContextLoader.initWebApplicationContext()</strong>方法。</li>
+<li><p>通过ContextLoader.initWebApplicationContext()可以了解到：Spring初始化之后，将ApplicationContext存到在了两个地方(servletContext中和currentContextPerThread中)。<br><br>取得ApplicationContext:</p>
+<ol>
+<li><p>直接通过request读取属性获取        </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">request.getSession().getServletContext().getAttribute(&quot;org.springframework.web.context.WebApplicationContext.ROOT&quot;)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过ContextLoader的Map获取    </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static WebApplicationContext getCurrentWebApplicationContext() &#123;  </span><br><span class="line">    return (WebApplicationContext) currentContextPerThread.get(Thread.currentThread().</span><br><span class="line">     getContextClassLoader();</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure></li>
+<li><p>通过ApplicationContextAware</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ApplicationHelper implements ApplicationContextAware &#123;  </span><br><span class="line">    private ApplicationContext applicationContext; </span><br><span class="line">    public void setApplicationContext(ApplicationContext applicationContext)  </span><br><span class="line">        throws BeansException &#123;  </span><br><span class="line">        this.applicationContext &#x3D; applicationContext;  </span><br><span class="line">    &#125;  </span><br><span class="line">    public  ApplicationContext getApplicationContext()&#123;</span><br><span class="line">        return this.applicationContext;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;  </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h5 id="加载spring容器–ContextLoader"><a href="#加载spring容器–ContextLoader" class="headerlink" title="加载spring容器–ContextLoader"></a>加载spring容器–ContextLoader</h5><ul>
+<li><p>ContextLoader主要负责加载spring主容器，即 root ApplicationContext。定义了contextId，contextConfigLocation,contextClass,contextInitializerClasses。这些参数都可以通过配置指定，如web.xml的context-param标签，或者是基于Java编程方式配置的WebApplicationInitializer中定义，作为分别为：</p>
+<ol>
+<li><strong>contextId</strong>：当前容器的id，主要给底层所使用的BeanFactory,在进行序列化时使用。</li>
+<li><strong>contextConfigLocation</strong>：配置文件的位置，默认为WEB-INF/applicationContext.xml，在配置文件中通过beans作为主标签来定义bean。这样底层的BeanFactory会解析beans标签以及里面的bean。从而创建BeanDefinitions集合，即bean的元数据内存数据库。</li>
+<li><strong>contextClass</strong>：当前所使用的WebApplicationContext的类型，如果在WEB-INF/applicationContext.xml指定beans，则使用<strong>XmlWebApplicationContext</strong>,如果通过注解，如@Configuration，@Component等，则是<strong>AnnotationConfigWebApplicationContext</strong>，通过扫描basePackages指定的包来创建bean</li>
+<li><strong>contextInitializerClasses</strong>：ApplicationContextInitializer的实现类，即在调用ApplicationContext的refresh加载beanDefinition和创建bean之前，对WepApplicationContext进行一些初始化。</li>
+</ol>
+</li>
+<li><p>initWebApplicationContext方法：创建和初始化spring主容器对应的WebApplicationContext；主要完成两个操作：</p>
+<ol>
+<li>创建WebApplicationContext对象实例并调用refresh方法完成从contextConfigLocation指定的配置中加载BeanDefinitions和创建bean实例</li>
+<li>将创建好的WebApplicationContext实例作为一个attribute存在ServletContext中</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h6 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h6><ul>
+<li>ContextLoader完成spring的主容器的创建，通过ServletContext读取web.xml文件或者WebApplicationInitializer的实现类中，获取WebApplicationContext相关配置信息，如使用contextClass指定使用哪种WebApplicationContext实现，contextConfigLocation指定spring容器的配置文件位置，以及获取WebApplicationContextInitializers来进行spring容器创建之前，对WebApplicationContext进行加工处理。</li>
+<li>spring容器的创建，是使用spring-context包的ApplicationContext，spring-beans包的BeanFactory，来完成从配置中获取beans定义并创建BeanDefinition，获取一些资源属性值，以及完成单例bean的创建等。</li>
+</ul>
 ]]></content>
       <categories>
         <category>java</category>
