@@ -6,6 +6,7 @@
     <content><![CDATA[<h5 id="前言概述"><a href="#前言概述" class="headerlink" title="前言概述"></a>前言概述</h5><p>目前web开发主流采用的是java作为后端开发的语言，在javaweb开发中，spring框架提供了较为完善的封装，先阶段spring boot在spring mvc的基础上进行了一系列的优化，使得搭建框架时 <strong>约定大于配置，简化spring的配置流程</strong>, 当然也会有其他的开源框架，但在spring面前 <strong>都是弟弟。</strong><br></p>
 <p>spring框架是使用趋势图：<br><img src="https://tvax4.sinaimg.cn/large/006rzR0hly1gl76tjmkqqj30d407ymzj.jpg" alt="image"></p>
 <p>最近有时间，正好研究下spring的源码及其加载配置的原理，采用spring mvc框架进行分析</p>
+<a id="more"></a>
 <hr>
 <h5 id="spring剖析"><a href="#spring剖析" class="headerlink" title="spring剖析"></a>spring剖析</h5><p>在使用spring mvc进行web开发时，是需要在web.xml文件中进行一系列配置，<strong>ContexLoaderListener，contextConfigLocation，DispatchServlet</strong>，其中<strong>contextConfigLocation</strong>是用来指定spring配置文件路径的，默认是加载WEB-INF下的applicationContext.xml，如果次路径没有配置文件或者没有在web.xml中配置，则初始化项目失败。<strong>DispatchServlet</strong>是用来接受所有前端控制器，配置扫描spring mvc的配置文件，根据拦截的url进行不同的请求分发。</p>
 <hr>
@@ -63,11 +64,10 @@
 <li><h6 id="web项目自身"><a href="#web项目自身" class="headerlink" title="web项目自身"></a>web项目自身</h6><pre><code>接受web容器启动web应用通知，开始自身配置的解析加载，创建bean实例，通过一个WebApplicationContext来维护spring项目主容器相关的bean，以及其他组件。
 </code></pre></li>
 <li><h6 id="web容器"><a href="#web容器" class="headerlink" title="web容器"></a>web容器</h6><pre><code>web容器通过ServletContext来维护每一个web应用，ContextLoaderListener将spring容器，即WebApplicationContext，作为ServletContext的一个attribute，key为WebApplicationContext.class.getName()+&quot;ROOT&quot;,保存在ServletContext中，从而为web容器和spring项目可以通过ServletContext进行交互。
-</code></pre></li>
+</code></pre><a id="more"></a></li>
 </ol>
 </li>
-<li><p>ContextLoaderListener只是作为中间层建立spring容器和web容器的关联关系，实际的逻辑是在<strong>ContextLoader</strong>中进行的。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ContextLoaderListener extends ContextLoader implements ServletContextListener &#123;</span><br><span class="line">    public ContextLoaderListener() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    public ContextLoaderListener(WebApplicationContext context) &#123;</span><br><span class="line">        super(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void contextInitialized(ServletContextEvent event) &#123;</span><br><span class="line">        this.initWebApplicationContext(event.getServletContext());</span><br><span class="line">    &#125;</span><br><span class="line">    public void contextDestroyed(ServletContextEvent event) &#123;</span><br><span class="line">        this.closeWebApplicationContext(event.getServletContext());</span><br><span class="line">        ContextCleanupListener.cleanupAttributes(event.getServletContext());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<li>ContextLoaderListener只是作为中间层建立spring容器和web容器的关联关系，实际的逻辑是在<strong>ContextLoader</strong>中进行的。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ContextLoaderListener extends ContextLoader implements ServletContextListener &#123;</span><br><span class="line">    public ContextLoaderListener() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    public ContextLoaderListener(WebApplicationContext context) &#123;</span><br><span class="line">        super(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void contextInitialized(ServletContextEvent event) &#123;</span><br><span class="line">        this.initWebApplicationContext(event.getServletContext());</span><br><span class="line">    &#125;</span><br><span class="line">    public void contextDestroyed(ServletContextEvent event) &#123;</span><br><span class="line">        this.closeWebApplicationContext(event.getServletContext());</span><br><span class="line">        ContextCleanupListener.cleanupAttributes(event.getServletContext());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <hr>
